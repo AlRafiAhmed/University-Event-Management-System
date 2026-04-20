@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Supervisor Registration</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center px-4">
+  <div class="w-full max-w-lg bg-white shadow rounded-lg p-6">
+    <h2 class="text-2xl font-bold text-center text-blue-900 mb-6">Supervisor Registration</h2>
+    <div id="messageBox" class="hidden mb-4 p-3 rounded text-sm"></div>
+
+    <form action="register_supervisor.php" method="POST" enctype="multipart/form-data" class="space-y-4">
+      <input type="text" name="name" required placeholder="Full Name" class="w-full border rounded px-3 py-2" />
+      <input type="email" name="email" required placeholder="Email" class="w-full border rounded px-3 py-2" />
+      <input type="password" name="password" required minlength="4" placeholder="Password" class="w-full border rounded px-3 py-2" />
+      <input type="text" name="designation" required placeholder="Designation" class="w-full border rounded px-3 py-2" />
+      <input type="text" name="department" required placeholder="Department" class="w-full border rounded px-3 py-2" />
+      <div>
+        <label class="text-sm text-gray-700">Profile Picture (Optional)</label>
+        <input type="file" name="profile_image" accept="image/*" class="w-full border rounded px-3 py-2 mt-1 bg-white" />
+      </div>
+
+      <button type="submit" class="w-full bg-blue-900 text-white py-2 rounded hover:bg-blue-800 transition">Register</button>
+    </form>
+
+    <p class="text-center text-sm mt-4">Already have an account? <a href="login.html" class="text-blue-700 hover:underline">Login</a></p>
+  </div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get("error");
+    const box = document.getElementById("messageBox");
+    if (error) {
+      box.classList.remove("hidden");
+      box.textContent = error;
+      box.classList.add("bg-red-100", "text-red-700");
+    }
+  </script>
+</body>
+</html>

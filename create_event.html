@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Event</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen">
+  <div class="flex min-h-screen">
+    <aside class="w-64 bg-blue-900 text-white p-5">
+      <h2 class="text-xl font-bold mb-6">Admin Panel</h2>
+      <nav class="space-y-2">
+        <a href="admin_dashboard.html" class="block px-3 py-2 rounded hover:bg-blue-800">Dashboard</a>
+        <a href="admin_students.html" class="block px-3 py-2 rounded hover:bg-blue-800">Students</a>
+        <a href="admin_supervisors.html" class="block px-3 py-2 rounded hover:bg-blue-800">Supervisors</a>
+        <a href="admin_create_supervisor.html" class="block px-3 py-2 rounded hover:bg-blue-800">Create Supervisor</a>
+        <a href="create_event.html" class="block px-3 py-2 rounded bg-blue-700">Create New Event</a>
+      </nav>
+      <a href="logout.php" class="inline-block mt-8 bg-red-600 px-4 py-2 rounded hover:bg-red-700">Logout</a>
+    </aside>
+
+    <main class="flex-1 p-8">
+      <div class="bg-white rounded-lg shadow p-6 max-w-3xl">
+        <h1 class="text-3xl font-bold text-blue-900">Create a Event</h1>
+        <p class="mt-2 text-gray-600">Fill out the form below to create a new event.</p>
+
+        <form id="createEventForm" class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div class="md:col-span-2">
+            <label for="title" class="block text-sm font-semibold text-gray-700 mb-1">Event Title</label>
+            <input id="title" name="title" type="text" required
+              class="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter event title" />
+          </div>
+
+          <div>
+            <label for="event_type" class="block text-sm font-semibold text-gray-700 mb-1">Event Type</label>
+            <select id="event_type" name="event_type" required
+              class="w-full border border-slate-300 rounded-lg px-4 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <option value="">Select event type</option>
+              <option value="Seminar">Seminar</option>
+              <option value="Workshop">Workshop</option>
+              <option value="Competition">Competition</option>
+              <option value="Cultural Program">Cultural Program</option>
+              <option value="Sports">Sports</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="date" class="block text-sm font-semibold text-gray-700 mb-1">Event Date</label>
+            <input id="date" name="date" type="date" required
+              class="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+          </div>
+
+          <div>
+            <label for="last_registration_date" class="block text-sm font-semibold text-gray-700 mb-1">Last Registration Date</label>
+            <input id="last_registration_date" name="last_registration_date" type="date" required
+              class="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+          </div>
+
+          <div>
+            <label for="fee_type" class="block text-sm font-semibold text-gray-700 mb-1">Type (Free/Paid)</label>
+            <select id="fee_type" name="fee_type" required
+              class="w-full border border-slate-300 rounded-lg px-4 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <option value="">Select type</option>
+              <option value="free">Free</option>
+              <option value="paid">Paid</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="assigned_supervisor_id" class="block text-sm font-semibold text-gray-700 mb-1">Assign Supervisor</label>
+            <select id="assigned_supervisor_id" name="assigned_supervisor_id" required
+              class="w-full border border-slate-300 rounded-lg px-4 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <option value="">Loading supervisors...</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="location" class="block text-sm font-semibold text-gray-700 mb-1">Location</label>
+            <input id="location" name="location" type="text" required
+              class="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Event location" />
+          </div>
+
+          <div>
+            <label for="capacity" class="block text-sm font-semibold text-gray-700 mb-1">Capacity</label>
+            <input id="capacity" name="capacity" type="number" min="1" required
+              class="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Number of seats" />
+          </div>
+
+          <div class="md:col-span-2">
+            <label for="description" class="block text-sm font-semibold text-gray-700 mb-1">Description</label>
+            <textarea id="description" name="description" rows="4"
+              class="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Write event details..."></textarea>
+          </div>
+
+          <div class="md:col-span-2 flex items-center gap-3">
+            <button type="submit"
+              class="bg-blue-700 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-blue-800 transition">
+              Create Event
+            </button>
+            <p id="formMessage" class="text-sm font-medium"></p>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    async function checkAdmin() {
+      const response = await fetch("create_event.php", { cache: "no-store" });
+      if (!response.ok) {
+        window.location.href = "login.html?error=" + encodeURIComponent("Please login as admin.");
+        return;
+      }
+      const data = await response.json();
+      const supervisorSelect = document.getElementById("assigned_supervisor_id");
+      const supervisors = Array.isArray(data.supervisors) ? data.supervisors : [];
+      if (supervisors.length === 0) {
+        supervisorSelect.innerHTML = '<option value="">No approved supervisors found</option>';
+        return;
+      }
+      supervisorSelect.innerHTML = '<option value="">Select supervisor</option>' + supervisors.map((sup) =>
+        `<option value="${sup.id}">${sup.name} (${sup.department})</option>`
+      ).join("");
+    }
+    checkAdmin();
+
+    const form = document.getElementById("createEventForm");
+    const formMessage = document.getElementById("formMessage");
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      formMessage.textContent = "Saving event...";
+      formMessage.className = "text-sm font-medium text-blue-700";
+
+      const formData = new FormData(form);
+      const response = await fetch("create_event.php", {
+        method: "POST",
+        body: formData
+      });
+      const data = await response.json();
+
+      if (response.ok && data.ok) {
+        formMessage.textContent = data.message || "Event created successfully.";
+        formMessage.className = "text-sm font-medium text-green-700";
+        form.reset();
+      } else {
+        formMessage.textContent = data.message || "Could not create event.";
+        formMessage.className = "text-sm font-medium text-red-700";
+      }
+    });
+  </script>
+</body>
+</html>

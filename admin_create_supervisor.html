@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Create Supervisor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen">
+  <div class="flex min-h-screen">
+    <aside class="w-64 bg-blue-900 text-white p-5">
+      <h2 class="text-xl font-bold mb-6">Admin Panel</h2>
+      <nav class="space-y-2">
+        <a href="admin_dashboard.html" class="block px-3 py-2 rounded hover:bg-blue-800">Dashboard</a>
+        <a href="admin_students.html" class="block px-3 py-2 rounded hover:bg-blue-800">Students</a>
+        <a href="admin_supervisors.html" class="block px-3 py-2 rounded hover:bg-blue-800">Supervisors</a>
+        <a href="admin_create_supervisor.html" class="block px-3 py-2 rounded bg-blue-700">Create Supervisor</a>
+        <a href="create_event.html" class="block px-3 py-2 rounded hover:bg-blue-800">Create New Event</a>
+      </nav>
+      <a href="logout.php" class="inline-block mt-8 bg-red-600 px-4 py-2 rounded hover:bg-red-700">Logout</a>
+    </aside>
+
+    <main class="flex-1 p-8">
+      <div class="bg-white rounded-lg shadow p-6 max-w-2xl">
+        <h1 class="text-2xl font-bold text-blue-900">Create Supervisor</h1>
+        <p class="mt-1 text-gray-600">Admin-created supervisors are approved automatically.</p>
+        <div id="msg" class="hidden mt-4 p-3 rounded text-sm"></div>
+
+        <form id="createSupervisorForm" class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="text" name="name" required placeholder="Full Name" class="border border-slate-300 rounded-lg px-4 py-2.5" />
+          <input type="email" name="email" required placeholder="Email" class="border border-slate-300 rounded-lg px-4 py-2.5" />
+          <input type="password" name="password" required minlength="4" placeholder="Password" class="border border-slate-300 rounded-lg px-4 py-2.5" />
+          <input type="text" name="designation" required placeholder="Designation" class="border border-slate-300 rounded-lg px-4 py-2.5" />
+          <input type="text" name="department" required placeholder="Department" class="border border-slate-300 rounded-lg px-4 py-2.5 md:col-span-2" />
+
+          <div class="md:col-span-2 flex items-center gap-3">
+            <button type="submit" class="bg-blue-700 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-blue-800 transition">Create Supervisor</button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function showMessage(text, isError) {
+      const box = document.getElementById("msg");
+      box.classList.remove("hidden");
+      box.className = "mt-4 p-3 rounded text-sm " + (isError ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700");
+      box.textContent = text;
+    }
+
+    document.getElementById("createSupervisorForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const response = await fetch("admin_create_supervisor.php", {
+        method: "POST",
+        body: new FormData(this)
+      });
+      const result = await response.json();
+      showMessage(result.message || "Done.", !result.ok);
+      if (response.ok && result.ok) {
+        this.reset();
+      }
+    });
+  </script>
+</body>
+</html>

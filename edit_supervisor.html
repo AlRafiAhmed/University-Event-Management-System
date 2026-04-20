@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Supervisor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen">
+  <div class="flex min-h-screen">
+    <aside class="w-64 bg-blue-900 text-white p-5">
+      <h2 class="text-xl font-bold mb-6">Admin Panel</h2>
+      <nav class="space-y-2">
+        <a href="admin_dashboard.html" class="block px-3 py-2 rounded hover:bg-blue-800">Dashboard</a>
+        <a href="admin_students.html" class="block px-3 py-2 rounded hover:bg-blue-800">Students</a>
+        <a href="admin_supervisors.html" class="block px-3 py-2 rounded bg-blue-700">Supervisors</a>
+        <a href="create_event.html" class="block px-3 py-2 rounded hover:bg-blue-800">Create New Event</a>
+      </nav>
+      <a href="logout.php" class="inline-block mt-8 bg-red-600 px-4 py-2 rounded hover:bg-red-700">Logout</a>
+    </aside>
+
+    <main class="flex-1 p-8">
+      <div class="bg-white rounded-lg shadow p-6 max-w-2xl">
+        <h1 class="text-2xl font-bold text-blue-900 mb-4">Edit Supervisor</h1>
+        <div id="msg" class="hidden mb-4 p-3 rounded text-sm"></div>
+
+        <form id="editSupervisorForm" class="space-y-3">
+          <input type="hidden" id="id" name="id">
+
+          <div>
+            <label class="block text-sm text-gray-700 mb-1">Name</label>
+            <input id="name" name="name" required class="w-full border rounded px-3 py-2" />
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-700 mb-1">Email</label>
+            <input type="email" id="email" name="email" required class="w-full border rounded px-3 py-2" />
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-700 mb-1">Password</label>
+            <input id="password" name="password" required class="w-full border rounded px-3 py-2" />
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-700 mb-1">Designation</label>
+            <input id="designation" name="designation" required class="w-full border rounded px-3 py-2" />
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-700 mb-1">Department</label>
+            <input id="department" name="department" required class="w-full border rounded px-3 py-2" />
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-700 mb-1">Approval Status</label>
+            <select id="status" name="status" class="w-full border rounded px-3 py-2">
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-700 mb-1">Active Status</label>
+            <select id="is_active" name="is_active" class="w-full border rounded px-3 py-2">
+              <option value="1">Active</option>
+              <option value="0">Deactive</option>
+            </select>
+          </div>
+
+          <button type="submit" class="bg-blue-900 text-white px-4 py-2 rounded hover:bg-blue-800">Update Supervisor</button>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function showMessage(text, isError) {
+      const box = document.getElementById("msg");
+      box.className = "mb-4 p-3 rounded text-sm " + (isError ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700");
+      box.textContent = text;
+    }
+
+    const id = new URLSearchParams(window.location.search).get("id");
+    if (!id) {
+      showMessage("Missing supervisor id.", true);
+    } else {
+      fetch("edit_supervisor.php?id=" + encodeURIComponent(id), { cache: "no-store" })
+        .then(res => {
+          if (!res.ok) {
+            window.location.href = "login.html?error=" + encodeURIComponent("Please login as admin.");
+            throw new Error("Unauthorized");
+          }
+          return res.json();
+        })
+        .then(result => {
+          if (!result.ok) {
+            showMessage(result.message || "Supervisor not found.", true);
+            return;
+          }
+          const s = result.data;
+          document.getElementById("id").value = s.id;
+          document.getElementById("name").value = s.name;
+          document.getElementById("email").value = s.email;
+          document.getElementById("password").value = s.password;
+          document.getElementById("designation").value = s.designation;
+          document.getElementById("department").value = s.department;
+          document.getElementById("status").value = s.status;
+          document.getElementById("is_active").value = s.is_active;
+        })
+        .catch(() => {});
+    }
+
+    document.getElementById("editSupervisorForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const body = new FormData(this);
+      const response = await fetch("edit_supervisor.php", { method: "POST", body });
+      const result = await response.json();
+      showMessage(result.message || "Update complete.", !result.ok);
+    });
+  </script>
+</body>
+</html>

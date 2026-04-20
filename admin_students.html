@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Students</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen">
+  <div class="flex min-h-screen">
+    <aside class="w-64 bg-blue-900 text-white p-5">
+      <h2 class="text-xl font-bold mb-6">Admin Panel</h2>
+      <nav class="space-y-2">
+        <a href="admin_dashboard.html" class="block px-3 py-2 rounded hover:bg-blue-800">Dashboard</a>
+        <a href="admin_students.html" class="block px-3 py-2 rounded bg-blue-700">Students</a>
+        <a href="admin_supervisors.html" class="block px-3 py-2 rounded hover:bg-blue-800">Supervisors</a>
+        <a href="admin_create_supervisor.html" class="block px-3 py-2 rounded hover:bg-blue-800">Create Supervisor</a>
+        <a href="create_event.html" class="block px-3 py-2 rounded hover:bg-blue-800">Create New Event</a>
+      </nav>
+      <a href="logout.php" class="inline-block mt-8 bg-red-600 px-4 py-2 rounded hover:bg-red-700">Logout</a>
+    </aside>
+
+    <main class="flex-1 p-8">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h1 class="text-2xl font-bold text-blue-900 mb-4">Students</h1>
+        <div id="msg" class="hidden mb-4 p-3 rounded text-sm"></div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full border border-gray-200 text-sm">
+            <thead class="bg-blue-50">
+              <tr>
+                <th class="border px-3 py-2">ID</th>
+                <th class="border px-3 py-2">Image</th>
+                <th class="border px-3 py-2">Student ID</th>
+                <th class="border px-3 py-2">Name</th>
+                <th class="border px-3 py-2">Email</th>
+                <th class="border px-3 py-2">Password</th>
+                <th class="border px-3 py-2">Department</th>
+                <th class="border px-3 py-2">Status</th>
+                <th class="border px-3 py-2">Action</th>
+              </tr>
+            </thead>
+            <tbody id="studentRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function showMessage(text, isError) {
+      const box = document.getElementById("msg");
+      box.className = "mb-4 p-3 rounded text-sm " + (isError ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700");
+      box.textContent = text;
+    }
+
+    async function loadStudents() {
+      const response = await fetch("admin_students.php", { cache: "no-store" });
+      if (!response.ok) {
+        window.location.href = "login.html?error=" + encodeURIComponent("Please login as admin.");
+        return;
+      }
+      const result = await response.json();
+      if (!result.ok) {
+        showMessage(result.message || "Failed to load students.", true);
+        return;
+      }
+
+      const rows = document.getElementById("studentRows");
+      rows.innerHTML = "";
+      result.data.forEach((student) => {
+        const isActive = Number(student.is_active) === 1;
+        const imageSrc = student.profile_image || "https://placehold.co/48x48?text=No+Img";
+        rows.innerHTML += `
+          <tr class="hover:bg-gray-50">
+            <td class="border px-3 py-2">${student.id}</td>
+            <td class="border px-3 py-2 text-center">
+              <img src="${imageSrc}" alt="Student image" class="w-10 h-10 rounded object-cover border border-slate-300 inline-block" />
+            </td>
+            <td class="border px-3 py-2">${student.student_id}</td>
+            <td class="border px-3 py-2">${student.name}</td>
+            <td class="border px-3 py-2">${student.email}</td>
+            <td class="border px-3 py-2">${student.password}</td>
+            <td class="border px-3 py-2">${student.department}</td>
+            <td class="border px-3 py-2">${isActive ? "Active" : "Deactive"}</td>
+            <td class="border px-3 py-2">
+              <a href="edit_student.html?id=${student.id}" class="px-3 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700 mr-2 inline-block">Edit</a>
+              <button onclick="toggleStudent(${student.id}, ${isActive ? 0 : 1})" class="px-3 py-1 rounded text-white ${isActive ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}">
+                ${isActive ? "Deactivate" : "Activate"}
+              </button>
+            </td>
+          </tr>`;
+      });
+    }
+
+    async function toggleStudent(id, value) {
+      const body = new URLSearchParams();
+      body.append("action", "toggle_active");
+      body.append("target_id", id);
+      body.append("new_value", value);
+      const response = await fetch("admin_students.php", {
+        method: "POST",
+        body
+      });
+      const result = await response.json();
+      showMessage(result.message || "Updated", !result.ok);
+      if (result.ok) loadStudents();
+    }
+
+    loadStudents();
+  </script>
+</body>
+</html>

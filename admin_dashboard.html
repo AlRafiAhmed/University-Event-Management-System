@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen">
+  <div class="flex min-h-screen">
+    <aside class="w-64 bg-blue-900 text-white p-5">
+      <h2 class="text-xl font-bold mb-6">Admin Panel</h2>
+      <nav class="space-y-2">
+        <a href="admin_dashboard.html" class="block px-3 py-2 rounded bg-blue-700">Dashboard</a>
+        <a href="admin_students.html" class="block px-3 py-2 rounded hover:bg-blue-800">Students</a>
+        <a href="admin_supervisors.html" class="block px-3 py-2 rounded hover:bg-blue-800">Supervisors</a>
+        <a href="create_event.html" class="block px-3 py-2 rounded hover:bg-blue-800">Create New Event</a>
+        <a href="admin_create_supervisor.html" class="block px-3 py-2 rounded hover:bg-blue-800">Create Supervisor</a>
+        <a href="#eventsSection" class="block px-3 py-2 rounded hover:bg-blue-800">Events</a>
+      </nav>
+      <a href="logout.php" class="inline-block mt-8 bg-red-600 px-4 py-2 rounded hover:bg-red-700">Logout</a>
+    </aside>
+
+    <main class="flex-1 p-8">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h1 class="text-3xl font-bold text-blue-900">Dashboard</h1>
+        <p id="welcomeText" class="mt-2 text-gray-600">Loading admin profile...</p>
+      </div>
+      <div id="eventsSection" class="bg-white rounded-lg shadow p-6 mt-6">
+        <h2 class="text-2xl font-bold text-blue-900">Events</h2>
+        <p class="text-gray-600 mt-1">All created events.</p>
+        <div id="eventsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-5"></div>
+      </div>
+      <div id="eventDetailsSection" class="bg-white rounded-lg shadow p-6 mt-6 hidden">
+        <h2 class="text-2xl font-bold text-blue-900">Event Details</h2>
+        <div id="eventBasicDetails" class="mt-3 text-sm text-slate-700 space-y-1"></div>
+        <h3 class="text-xl font-bold text-slate-800 mt-6">Programs</h3>
+        <div id="eventProgramsList" class="space-y-2 mt-3"></div>
+      </div>
+      <div id="eventEditSection" class="bg-white rounded-lg shadow p-6 mt-6 hidden">
+        <h2 class="text-2xl font-bold text-blue-900">Edit Event</h2>
+        <form id="editEventForm" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="hidden" id="edit_event_id" name="event_id" />
+          <input type="hidden" name="action" value="update" />
+          <input name="title" type="text" required class="border border-slate-300 rounded-lg px-4 py-2.5" placeholder="Title" />
+          <input name="event_type" type="text" required class="border border-slate-300 rounded-lg px-4 py-2.5" placeholder="Event Type" />
+          <input name="date" type="date" required class="border border-slate-300 rounded-lg px-4 py-2.5" />
+          <input name="last_registration_date" type="date" required class="border border-slate-300 rounded-lg px-4 py-2.5" />
+          <select name="fee_type" required class="border border-slate-300 rounded-lg px-4 py-2.5 bg-white">
+            <option value="free">Free</option>
+            <option value="paid">Paid</option>
+          </select>
+          <select id="edit_assigned_supervisor_id" name="assigned_supervisor_id" required class="border border-slate-300 rounded-lg px-4 py-2.5 bg-white"></select>
+          <input name="location" type="text" required class="border border-slate-300 rounded-lg px-4 py-2.5" placeholder="Location" />
+          <input name="capacity" type="number" min="1" required class="border border-slate-300 rounded-lg px-4 py-2.5" placeholder="Capacity" />
+          <textarea name="description" rows="3" class="border border-slate-300 rounded-lg px-4 py-2.5 md:col-span-2" placeholder="Description"></textarea>
+          <div class="md:col-span-2 flex items-center gap-3">
+            <button type="submit" class="bg-amber-700 text-white px-4 py-2 rounded hover:bg-amber-800 transition">Update Event</button>
+            <p id="editEventMessage" class="text-sm font-medium"></p>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+  <script>
+    let eventSupervisors = [];
+    async function checkAdmin() {
+      const response = await fetch("admin_session.php", { cache: "no-store" });
+      if (!response.ok) {
+        window.location.href = "login.html?error=" + encodeURIComponent("Please login as admin.");
+        return;
+      }
+      const data = await response.json();
+      if (!data.ok) {
+        window.location.href = "login.html?error=" + encodeURIComponent("Please login as admin.");
+        return;
+      }
+      document.getElementById("welcomeText").textContent = "Welcome, " + (data.name || "Admin") + ".";
+    }
+
+    checkAdmin();
+
+    async function loadSupervisorsForEdit() {
+      const response = await fetch("admin_event_manage.php", { cache: "no-store" });
+      if (!response.ok) return;
+      const data = await response.json();
+      if (!data.ok) return;
+      eventSupervisors = Array.isArray(data.supervisors) ? data.supervisors : [];
+    }
+
+    async function loadEvents() {
+      const response = await fetch("events_list.php", { cache: "no-store" });
+      if (!response.ok) {
+        return;
+      }
+      const data = await response.json();
+      if (!data.ok) {
+        return;
+      }
+
+      const eventsGrid = document.getElementById("eventsGrid");
+      if (!Array.isArray(data.events) || data.events.length === 0) {
+        eventsGrid.innerHTML = '<p class="text-gray-500">No events found.</p>';
+        return;
+      }
+
+      eventsGrid.innerHTML = data.events.map((event) => `
+        <div class="border border-slate-200 rounded-lg bg-white">
+          <div class="p-4">
+            <h3 class="font-bold text-lg text-slate-800">${event.title}</h3>
+            <p class="text-sm text-slate-600 mt-1">${event.event_type} - ${event.fee_type}</p>
+            <p class="text-sm text-slate-600">Date: ${event.date}</p>
+            <p class="text-sm text-slate-600">Location: ${event.location}</p>
+            <div class="mt-3 flex gap-2">
+              <button type="button" class="bg-blue-700 text-white px-3 py-1.5 rounded hover:bg-blue-800 transition eventDetailsBtn"
+                data-event='${JSON.stringify(event).replace(/'/g, "&apos;")}'>View Details</button>
+              <button type="button" class="bg-amber-700 text-white px-3 py-1.5 rounded hover:bg-amber-800 transition eventEditBtn"
+                data-event='${JSON.stringify(event).replace(/'/g, "&apos;")}'>Edit</button>
+              <button type="button" class="bg-red-700 text-white px-3 py-1.5 rounded hover:bg-red-800 transition eventDeleteBtn"
+                data-event-id="${event.id}">Delete</button>
+            </div>
+          </div>
+        </div>
+      `).join("");
+
+      document.querySelectorAll(".eventDetailsBtn").forEach((btn) => {
+        btn.addEventListener("click", async function () {
+          const event = JSON.parse(this.getAttribute("data-event").replace(/&apos;/g, "'"));
+          await showEventDetails(event);
+        });
+      });
+
+      document.querySelectorAll(".eventEditBtn").forEach((btn) => {
+        btn.addEventListener("click", function () {
+          const event = JSON.parse(this.getAttribute("data-event").replace(/&apos;/g, "'"));
+          openEditEventForm(event);
+        });
+      });
+
+      document.querySelectorAll(".eventDeleteBtn").forEach((btn) => {
+        btn.addEventListener("click", async function () {
+          const eventId = this.getAttribute("data-event-id");
+          await deleteEvent(eventId);
+        });
+      });
+    }
+
+    function openEditEventForm(event) {
+      const section = document.getElementById("eventEditSection");
+      const form = document.getElementById("editEventForm");
+      section.classList.remove("hidden");
+      form.event_id.value = event.id;
+      form.title.value = event.title || "";
+      form.event_type.value = event.event_type || "";
+      form.date.value = event.date || "";
+      form.last_registration_date.value = event.last_registration_date || "";
+      form.fee_type.value = event.fee_type || "free";
+      form.location.value = event.location || "";
+      form.capacity.value = event.capacity || "";
+      form.description.value = event.description || "";
+
+      const supSelect = document.getElementById("edit_assigned_supervisor_id");
+      supSelect.innerHTML = eventSupervisors.length === 0
+        ? '<option value="">No supervisors found</option>'
+        : '<option value="">Select supervisor</option>' + eventSupervisors.map((s) =>
+            `<option value="${s.id}">${s.name} (${s.department})</option>`
+          ).join("");
+      supSelect.value = event.assigned_supervisor_id || "";
+      window.location.hash = "eventEditSection";
+    }
+
+    async function deleteEvent(eventId) {
+      if (!confirm("Delete this event?")) return;
+      const formData = new FormData();
+      formData.append("action", "delete");
+      formData.append("event_id", eventId);
+      const response = await fetch("admin_event_manage.php", { method: "POST", body: formData });
+      const data = await response.json();
+      if (response.ok && data.ok) {
+        loadEvents();
+      } else {
+        alert(data.message || "Could not delete event.");
+      }
+    }
+
+    async function showEventDetails(event) {
+      document.getElementById("eventDetailsSection").classList.remove("hidden");
+      document.getElementById("eventBasicDetails").innerHTML = `
+        <p><strong>Title:</strong> ${event.title}</p>
+        <p><strong>Type:</strong> ${event.event_type} (${event.fee_type})</p>
+        <p><strong>Date:</strong> ${event.date}</p>
+        <p><strong>Last Registration:</strong> ${event.last_registration_date}</p>
+        <p><strong>Location:</strong> ${event.location}</p>
+        <p><strong>Capacity:</strong> ${event.capacity}</p>
+        <p><strong>Description:</strong> ${event.description || "-"}</p>
+      `;
+
+      const response = await fetch("event_programs.php?event_id=" + encodeURIComponent(event.id), { cache: "no-store" });
+      if (!response.ok) return;
+      const data = await response.json();
+      if (!data.ok) return;
+
+      const programsList = document.getElementById("eventProgramsList");
+      if (!Array.isArray(data.programs) || data.programs.length === 0) {
+        programsList.innerHTML = '<p class="text-gray-500">No programs added yet.</p>';
+        return;
+      }
+
+      programsList.innerHTML = data.programs.map((program) => `
+        <div class="border border-slate-200 rounded p-3">
+          <p class="font-semibold text-slate-800">#${program.serial_no} ${program.program_name}</p>
+          <p class="text-sm text-slate-600">Participant: ${program.participant_name || "-"}</p>
+          <p class="text-sm text-slate-600">Time: ${program.start_time} - ${program.end_time}</p>
+        </div>
+      `).join("");
+
+      window.location.hash = "eventDetailsSection";
+    }
+
+    document.getElementById("editEventForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const msg = document.getElementById("editEventMessage");
+      msg.textContent = "Updating...";
+      msg.className = "text-sm font-medium text-blue-700";
+      const response = await fetch("admin_event_manage.php", { method: "POST", body: new FormData(this) });
+      const data = await response.json();
+      if (response.ok && data.ok) {
+        msg.textContent = data.message || "Updated.";
+        msg.className = "text-sm font-medium text-green-700";
+        await loadEvents();
+      } else {
+        msg.textContent = data.message || "Could not update event.";
+        msg.className = "text-sm font-medium text-red-700";
+      }
+    });
+
+    loadSupervisorsForEdit().then(loadEvents);
+  </script>
+</body>
+</html>
